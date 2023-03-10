@@ -1,0 +1,26 @@
+import time
+import requests
+from bs4 import BeautifulSoup
+import xmltodict
+
+
+s3_url_pattern = "https://{0}.s3.{1}.amazonaws.com"
+
+buckets = ["BUCKETNAME:REGION"]
+# just set the python list using BUCKETNAME:REGION so the code will create the url and list the XML inside bucket url
+
+result = open("result.txt", "w")
+for i in buckets:
+    bucket_name, region = i.split(":")
+    full_url = s3_url_pattern.format(bucket_name, region)
+
+    try:
+        document = requests.get(full_url).content.decode("utf-8")
+    except:
+        continue
+    data = xmltodict.parse(document)
+    if data['ListBucketResult'].get('Contents'):
+        for item in data['ListBucketResult']['Contents']:
+            url_ = full_url+"/"+item["Key"]+"\n"
+            print(full_url+"/"+item["Key"])
+            result.write(url_)
